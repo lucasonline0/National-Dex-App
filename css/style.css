@@ -1,0 +1,159 @@
+:root {
+    --bg-main: #121212;
+    --bg-surface: #1E1E1E;
+    --accent: #9370DB;
+    --text-main: #E0E0E0;
+    --text-secondary: #A0A0A0;
+    --border: #2D2D2D;
+}
+
+html.theme-ho-oh {
+    --bg-main: #2b1c1c;
+    --bg-surface: #4e2a2a;
+    --accent: #ffcb05;
+    --text-main: #f5f5f5;
+    --text-secondary: #d4c7a5;
+    --border: #6a3a3a;
+}
+
+html.theme-lugia {
+    --bg-main: #1c1e2b;
+    --bg-surface: #2a2d4e;
+    --accent: #7ac7ff;
+    --text-main: #f0f8ff;
+    --text-secondary: #a0a8d4;
+    --border: #3a3d6a;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: var(--bg-main);
+    color: var(--text-main);
+    overflow-x: hidden;
+}
+
+#mouse-glow {
+    position: fixed;
+    width: 800px;
+    height: 800px;
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--accent) 0%, rgba(147, 112, 219, 0) 60%);
+    opacity: 0.15;
+    pointer-events: none;
+    transform: translate(-50%, -50%);
+    transition: transform 0.1s ease-out;
+    z-index: 9999;
+}
+
+.modal-backdrop {
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.form-input, .form-select {
+    background-color: var(--bg-surface);
+    border: 1px solid var(--border);
+    color: var(--text-main);
+    transition: all 0.3s ease;
+}
+
+.form-input:focus, .form-select:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(147, 112, 219, 0.5);
+}
+
+.stat-bar-fill {
+    animation: fillStatBar 1.5s ease-out forwards;
+}
+
+.pokemon-silhouette {
+    filter: brightness(0) contrast(100%);
+}
+
+.autocomplete-suggestions {
+    position: absolute;
+    background-color: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-top: none;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 100;
+}
+
+.autocomplete-suggestion {
+    padding: 8px 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.autocomplete-suggestion:hover, .autocomplete-suggestion.active {
+    background-color: var(--accent);
+    color: white;
+}
+
+.liquid-glass-ui {
+    background: rgba(46, 46, 46, 0.5);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-radius: 9999px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+}
+
+@keyframes cardEnter {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+.animate-card-enter {
+    animation: cardEnter 0.5s ease-out forwards;
+}
+
+@keyframes scaleUp {
+    from {
+        transform: scale(0.9);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+.animate-scale-up {
+    animation: scaleUp 0.3s ease-out forwards;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+.animate-fade-in {
+    animation: fadeIn 0.3s ease-in-out forwards;
+}
+
+@keyframes fillStatBar {
+    from { width: 0%; }
+    to { }
+}
+
+::-webkit-scrollbar {
+    width: 8px;
+}
+::-webkit-scrollbar-track {
+    background: var(--bg-surface);
+}
+::-webkit-scrollbar-thumb {
+    background: var(--accent);
+    border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #a380eb;
+}
