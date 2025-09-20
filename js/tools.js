@@ -78,8 +78,86 @@ function loadTool(toolName) {
         case 'timeline':
             renderGameTimeline();
             break;
+        case 'theme-selector':
+            renderThemeSelector();
+            break;
     }
     feather.replace();
+}
+
+function getSavedTeams() {
+    return JSON.parse(localStorage.getItem('savedPokemonTeams')) || {};
+}
+
+function saveTeamToStorage(teamName, teamPokemon) {
+    const savedTeams = getSavedTeams();
+    savedTeams[teamName] = teamPokemon.map(p => p.name); // Save only names to keep it lightweight
+    localStorage.setItem('savedPokemonTeams', JSON.stringify(savedTeams));
+}
+
+function handleSaveTeam() {
+    if (currentTeam.length === 0) {
+        alert('Adicione pelo menos um Pokémon ao time para salvar.');
+        return;
+    }
+    const teamName = prompt('Digite um nome para o seu time:');
+    if (teamName && teamName.trim() !== '') {
+        saveTeamToStorage(teamName.trim(), currentTeam);
+        renderSavedTeamsList(); // Update the list
+        alert(`Time "${teamName.trim()}" salvo com sucesso!`);
+    }
+}
+
+async function handleLoadTeam(teamName) {
+    const savedTeams = getSavedTeams();
+    const pokemonNames = savedTeams[teamName];
+    if (!pokemonNames) return;
+
+    const slotsContainer = document.getElementById('team-builder-slots');
+    slotsContainer.innerHTML = `<p class="col-span-full text-center text-gray-400">Carregando time "${teamName}"...</p>`;
+    document.getElementById('synergy-content').innerHTML = '<p class="text-sm text-gray-400">Calculando sinergia...</p>';
+
+    const pokemonPromises = pokemonNames.map(name => fetchWithCache(`https://pokeapi.co/api/v2/pokemon/${name}`));
+    const loadedPokemon = await Promise.all(pokemonPromises);
+    
+    currentTeam = loadedPokemon.filter(p => p);
+    renderTeamSlots();
+    analyzeTeamSynergy();
+}
+
+function handleDeleteTeam(teamName) {
+    if (!confirm(`Tem certeza que deseja deletar o time "${teamName}"?`)) {
+        return;
+    }
+    const savedTeams = getSavedTeams();
+    delete savedTeams[teamName];
+    localStorage.setItem('savedPokemonTeams', JSON.stringify(savedTeams));
+    renderSavedTeamsList();
+}
+
+function renderSavedTeamsList() {
+    const container = document.getElementById('saved-teams-list');
+    if (!container) return;
+    const savedTeams = getSavedTeams();
+    const teamNames = Object.keys(savedTeams);
+
+    if (teamNames.length === 0) {
+        container.innerHTML = '<p class="text-sm text-gray-400">Nenhum time salvo.</p>';
+        return;
+    }
+
+    container.innerHTML = teamNames.map(name => `
+        <div class="flex justify-between items-center p-2 rounded" style="background-color: rgba(255,255,255,0.05);">
+            <span class="font-semibold capitalize truncate pr-2">${name}</span>
+            <div class="flex gap-2 shrink-0">
+                <button class="text-xs bg-green-600 hover:bg-green-700 text-white font-bold py-1 px-2 rounded" onclick="handleLoadTeam('${name}')">Carregar</button>
+                <button class="text-xs bg-red-600 hover:bg-red-700 text-white font-bold py-1 px-2 rounded" onclick="handleDeleteTeam('${name}')">Deletar</button>
+            </div>
+        </div>
+    `).join('');
+    
+    window.handleLoadTeam = handleLoadTeam;
+    window.handleDeleteTeam = handleDeleteTeam;
 }
 
 function renderTeamBuilder() {
@@ -90,20 +168,33 @@ function renderTeamBuilder() {
                 <div class="lg:col-span-2">
                     <div class="grid grid-cols-2 md:grid-cols-3 gap-4" id="team-builder-slots">
                     </div>
-                    <div class="relative mt-4">
-                         <input type="text" id="team-builder-search" placeholder="Adicionar Pokémon..." class="form-input w-full p-3 rounded-lg">
+                    <div class="flex gap-4 mt-4">
+                        <div class="relative flex-grow">
+                             <input type="text" id="team-builder-search" placeholder="Adicionar Pokémon..." class="form-input w-full p-3 rounded-lg">
+                        </div>
+                        <button id="save-team-btn" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-6 rounded-lg transition-all shrink-0">Salvar Time</button>
                     </div>
                 </div>
-                <div id="team-synergy-analysis" class="p-4 rounded-lg" style="background-color: var(--bg-main);">
-                    <h4 class="font-bold mb-2">Análise da Equipe</h4>
-                    <div id="synergy-content">
-                        <p class="text-sm text-gray-400">Adicione Pokémon para ver a análise de sinergia.</p>
+                <div class="space-y-6">
+                    <div id="team-synergy-analysis" class="p-4 rounded-lg" style="background-color: var(--bg-main);">
+                        <h4 class="font-bold mb-2">Análise da Equipe</h4>
+                        <div id="synergy-content">
+                            <p class="text-sm text-gray-400">Adicione Pokémon para ver a análise de sinergia.</p>
+                        </div>
+                    </div>
+                    <div id="saved-teams-container" class="p-4 rounded-lg" style="background-color: var(--bg-main);">
+                        <h4 class="font-bold mb-4">Meus Times</h4>
+                        <div id="saved-teams-list" class="space-y-2 max-h-48 overflow-y-auto">
+                            <!-- Saved teams will be rendered here -->
+                        </div>
                     </div>
                 </div>
              </div>
         </div>`;
     renderTeamSlots();
     createAutocomplete(document.getElementById('team-builder-search'), addPokemonToTeam);
+    document.getElementById('save-team-btn').addEventListener('click', handleSaveTeam);
+    renderSavedTeamsList();
 }
 
 function addPokemonToTeam(pokemon) {
@@ -682,4 +773,35 @@ function updateTrainerInfoDisplay() {
         <span class="font-semibold text-white hidden md:block">${trainerName}</span>
         <img src="${avatarUrl}" class="h-10 w-10 rounded-full border-2 object-cover" style="border-color: var(--accent);">
     `;
+}
+
+function renderThemeSelector() {
+    toolsContent.innerHTML = `
+        <div id="tool-theme-selector" class="tool-content-wrapper">
+             <h3 class="text-xl font-bold mb-6 text-center">Escolha seu tema preferido</h3>
+             <div class="grid grid-cols-1 sm:grid-cols-3 gap-8 max-w-3xl mx-auto">
+                ${themes.map(theme => `
+                    <button class="theme-select-btn p-4 rounded-lg transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-purple-500" 
+                            data-theme-id="${theme.id}"
+                            style="background-color: ${theme.preview.bg};">
+                        <div class="w-full h-24 rounded-md mb-3 flex items-center justify-center" style="border: 4px solid ${theme.preview.accent};">
+                             <span class="text-4xl font-black" style="color: ${theme.preview.accent}; opacity: 0.5;">Aa</span>
+                        </div>
+                        <span class="font-bold text-lg">${theme.name}</span>
+                    </button>
+                `).join('')}
+             </div>
+        </div>
+    `;
+
+    document.querySelectorAll('.theme-select-btn').forEach(button => {
+        button.addEventListener('click', () => {
+            const themeId = button.dataset.themeId;
+            applyTheme(themeId);
+            
+            const feedbackEl = document.getElementById('tools-modal-title');
+            feedbackEl.textContent = `Tema ${button.textContent.trim()} aplicado!`;
+            setTimeout(() => { feedbackEl.textContent = toolTitles['theme-selector']; }, 1500);
+        });
+    });
 }
