@@ -186,6 +186,9 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const modalContent = document.getElementById('modal-content');
         modalContent.innerHTML = `
+            <button id="close-modal-btn" class="absolute top-4 right-4 text-gray-400 hover:text-white z-20">
+                <i data-feather="x" class="w-8 h-8"></i>
+            </button>
             <div class="flex flex-col md:flex-row h-full w-full">
                 <div class="md:w-1/3 flex flex-col justify-center items-center p-6 text-center" style="background-color: var(--bg-surface);">
                     <img src="${pokemonData.sprites.other['official-artwork'].front_default}" alt="${pokemonData.name}" class="mx-auto h-48 w-48 drop-shadow-lg">
@@ -198,10 +201,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
 
                 <div class="md:w-2/3 flex flex-col relative bg-gray-800">
-                     <button id="close-modal-btn" class="absolute top-4 right-4 text-gray-400 hover:text-white z-20">
-                        <i data-feather="x" class="w-8 h-8"></i>
-                    </button>
-                    
                     <div class="flex border-b shrink-0 flex-wrap" style="border-color: var(--border);">
                         <button class="modal-tab active-tab flex-1 py-3 font-semibold transition-colors duration-300" data-tab="description">Descrição</button>
                         <button class="modal-tab flex-1 py-3 font-semibold transition-colors duration-300" data-tab="defense">Defesa</button>
