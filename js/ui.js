@@ -135,7 +135,7 @@ async function openPokemonModal(pokemonIdOrName) {
                 <div class="flex border-b shrink-0 flex-wrap" style="border-color: var(--border);">
                     <button class="modal-tab active-tab flex-1 py-3 font-semibold transition-colors duration-300" data-tab="description">Descrição</button>
                     <button class="modal-tab flex-1 py-3 font-semibold transition-colors duration-300" data-tab="defense">Defesa</button>
-                    <button class="modal-tab flex-1 py-3 font-semibold transition-colors duration-300" data-tab="moves">Ataques</button>
+                    <button class="modal-tab flex-1 py-3 font-semibold transition-colors duration-300" data-tab="levelup">Level Up</button>
                     <button class="modal-tab flex-1 py-3 font-semibold transition-colors duration-300" data-tab="forms">Formas</button>
                     <button class="modal-tab flex-1 py-3 font-semibold transition-colors duration-300" data-tab="locations">Localização</button>
                 </div>
@@ -146,8 +146,8 @@ async function openPokemonModal(pokemonIdOrName) {
                     <div id="tab-defense" class="tab-content hidden">
                         <p class="text-center">Calculando...</p>
                     </div>
-                    <div id="tab-moves" class="tab-content hidden">
-                        ${generateMovesTab(pokemonData)}
+                    <div id="tab-levelup" class="tab-content hidden">
+                        <p class="text-center">Carregando ataques...</p>
                     </div>
                     <div id="tab-forms" class="tab-content hidden">
                         <p class="text-center">Carregando formas...</p>
@@ -177,6 +177,7 @@ async function openPokemonModal(pokemonIdOrName) {
     generateDescriptionTab(pokemonData, speciesData);
     calculateAndDisplayDefenses(pokemonData.types);
     generateFormsTab(pokemonData, speciesData);
+    generateLevelUpMovesTab(pokemonData);
     generateLocationTab(pokemonData);
 }
 
@@ -251,11 +252,90 @@ async function generateEvolutionChain(chainUrl) {
     return chainHtml;
 }
 
-function generateMovesTab(pokemonData) {
-    const moves = pokemonData.moves.slice(0, 20).map(move => `
-        <li class="capitalize p-2 rounded" style="background-color: rgba(0,0,0,0.2);">${move.move.name.replace(/-/g, ' ')}</li>
-    `).join('');
-    return `<ul class="grid grid-cols-2 gap-2">${moves}</ul>`;
+async function generateLevelUpMovesTab(pokemonData) {
+    const movesTab = document.getElementById('tab-levelup');
+    if (!movesTab) return;
+
+    const levelUpMoves = {};
+
+    pokemonData.moves.forEach(moveData => {
+        moveData.version_group_details.forEach(detail => {
+            if (detail.move_learn_method.name === 'level-up' && detail.level_learned_at > 0) {
+                const moveName = moveData.move.name;
+                const level = detail.level_learned_at;
+
+                if (!levelUpMoves[moveName] || level < levelUpMoves[moveName].level) {
+                    levelUpMoves[moveName] = {
+                        level: level,
+                        name: moveName,
+                        url: moveData.move.url
+                    };
+                }
+            }
+        });
+    });
+
+    const sortedMoves = Object.values(levelUpMoves).sort((a, b) => a.level - b.level);
+
+    if (sortedMoves.length === 0) {
+        movesTab.innerHTML = '<p class="text-gray-400 text-center">Este Pokémon não aprende ataques por nível nos jogos principais.</p>';
+        return;
+    }
+
+    const movePromises = sortedMoves.map(move => fetchWithCache(move.url));
+    const moveApiData = await Promise.all(movePromises);
+
+    const getCategoryHtml = (damageClass) => {
+        switch (damageClass) {
+            case 'physical':
+                return `<span class="text-xs font-semibold px-2 py-1 rounded-full text-white" style="background-color: #C03028;" title="Físico">Físico</span>`;
+            case 'special':
+                return `<span class="text-xs font-semibold px-2 py-1 rounded-full text-white" style="background-color: #6890F0;" title="Especial">Especial</span>`;
+            case 'status':
+                return `<span class="text-xs font-semibold px-2 py-1 rounded-full text-white" style="background-color: #888888;" title="Status">Status</span>`;
+            default:
+                return '—';
+        }
+    };
+
+    let html = `
+        <div class="text-sm overflow-x-auto">
+            <div class="grid grid-cols-12 gap-x-2 gap-y-1 font-bold text-center p-2 rounded-t-lg min-w-[600px]" style="background-color: var(--bg-main);">
+                <div class="col-span-1 text-left">Lvl</div>
+                <div class="col-span-4 text-left">Ataque</div>
+                <div class="col-span-2">Tipo</div>
+                <div class="col-span-2">Cat.</div>
+                <div class="col-span-1">Poder</div>
+                <div class="col-span-2">Prec.</div>
+            </div>
+            <div class="space-y-1 mt-1 min-w-[600px]">
+    `;
+
+    sortedMoves.forEach((move, index) => {
+        const moveData = moveApiData[index];
+        if (!moveData) return;
+
+        const type = moveData.type.name;
+        const damageClass = moveData.damage_class.name;
+        const power = moveData.power ?? '—';
+        const accuracy = moveData.accuracy ?? '—';
+
+        html += `
+            <div class="grid grid-cols-12 gap-x-2 gap-y-1 items-center text-center p-2 rounded-lg" style="background-color: var(--bg-surface);">
+                <div class="col-span-1 font-bold text-left">${move.level}</div>
+                <div class="col-span-4 text-left capitalize font-semibold">${move.name.replace(/-/g, ' ')}</div>
+                <div class="col-span-2">
+                    <span class="${typeColors[type] || 'bg-gray-500'} text-xs font-semibold px-2 py-1 rounded-full text-white capitalize">${type}</span>
+                </div>
+                <div class="col-span-2 flex justify-center">${getCategoryHtml(damageClass)}</div>
+                <div class="col-span-1">${power}</div>
+                <div class="col-span-2">${accuracy}</div>
+            </div>
+        `;
+    });
+
+    html += `</div></div>`;
+    movesTab.innerHTML = html;
 }
 
 async function generateFormsTab(pokemonData, speciesData) {
