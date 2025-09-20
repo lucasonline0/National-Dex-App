@@ -19,6 +19,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const toolsModal = document.getElementById('tools-modal');
     const toolsMenuBtn = document.getElementById('tools-menu-btn');
 
+    const toolTitles = {
+        'team-builder': 'Construtor de Times',
+        'comparator': 'Comparador de Pokémon',
+        'game': 'Quem é este Pokémon?',
+        'trainer-card': 'Cartão de Treinador',
+        'random-team': 'Gerador de Time Aleatório',
+        'type-coverage': 'Análise de Cobertura de Tipos',
+        'abilities': 'Explorador de Habilidades',
+        'timeline': 'Linha do Tempo dos Jogos'
+    };
+
     let allPokemon = [];
     let allPokemonNames = [];
     let offset = 0;
@@ -526,13 +537,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function openToolsModal(toolName) {
+        const toolTitle = toolTitles[toolName] || 'Ferramentas';
+        document.getElementById('tools-modal-title').textContent = toolTitle;
         toolsModal.classList.remove('hidden');
         loadTool(toolName);
-        setupToolTabs();
     }
 
     function loadTool(toolName) {
-        updateActiveTab(toolName, toolsModal, '.tool-tab', '.tool-content-wrapper', 'tool-');
         switch (toolName) {
             case 'team-builder':
                 currentTeam = [];
@@ -562,14 +573,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 break;
         }
         feather.replace();
-    }
-    
-    function setupToolTabs() {
-         toolsModal.querySelectorAll('.tool-tab').forEach(tab => {
-            tab.addEventListener('click', () => {
-                loadTool(tab.dataset.tool);
-            });
-        });
     }
     
     function renderTeamBuilder() {
