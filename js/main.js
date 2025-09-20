@@ -14,6 +14,14 @@ let comparatorPokemon = [null, null];
 let allAbilities = [];
 let coverageTeam = [];
 
+function applyTheme(themeName) {
+    document.documentElement.className = 'dark'; // Reset but keep dark mode base
+    if (themeName !== 'default') {
+        document.documentElement.classList.add(themeName);
+    }
+    localStorage.setItem('pokedexTheme', themeName);
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     // Assign DOM elements
     grid = document.getElementById('pokedex-grid');
@@ -74,6 +82,11 @@ document.addEventListener('DOMContentLoaded', () => {
         
         feather.replace();
         setupMouseGlow();
+
+        // Load saved theme on startup
+        const savedTheme = localStorage.getItem('pokedexTheme') || 'default';
+        applyTheme(savedTheme);
+
         await populateFilters();
         await populateGenerationFilter();
         await loadAllPokemonNames();

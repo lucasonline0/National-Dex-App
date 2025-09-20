@@ -15,5 +15,12 @@ const toolTitles = {
     'random-team': 'Gerador de Time Aleatório',
     'type-coverage': 'Análise de Cobertura de Tipos',
     'abilities': 'Explorador de Habilidades',
-    'timeline': 'Linha do Tempo dos Jogos'
+    'timeline': 'Linha do Tempo dos Jogos',
+    'theme-selector': 'Seletor de Temas'
 };
+
+const themes = [
+    { id: 'default', name: 'Padrão', preview: { bg: '#1E1E1E', accent: '#9370DB' } },
+    { id: 'theme-ho-oh', name: 'Ho-Oh', preview: { bg: '#4e2a2a', accent: '#ffcb05' } },
+    { id: 'theme-lugia', name: 'Lugia', preview: { bg: '#2a2d4e', accent: '#7ac7ff' } }
+];
