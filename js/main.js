@@ -1,21 +1,18 @@
-// DOM Elements
 let grid, searchInput, generationFilter, typeFilter, loadMoreBtn, loadingIndicator, modal, toolsModal, toolsMenuBtn, toolsContent;
 
-// State & Config
 let allPokemon = [];
 let allPokemonNames = [];
 let offset = 0;
 const limit = 50;
 const apiCache = new Map();
 
-// Tool-specific state
 let currentTeam = [];
 let comparatorPokemon = [null, null];
 let allAbilities = [];
 let coverageTeam = [];
 
 function applyTheme(themeName) {
-    document.documentElement.className = 'dark'; // Reset but keep dark mode base
+    document.documentElement.className = 'dark';
     if (themeName !== 'default') {
         document.documentElement.classList.add(themeName);
     }
@@ -23,7 +20,6 @@ function applyTheme(themeName) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Assign DOM elements
     grid = document.getElementById('pokedex-grid');
     searchInput = document.getElementById('search-input');
     generationFilter = document.getElementById('generation-filter');
@@ -83,7 +79,6 @@ document.addEventListener('DOMContentLoaded', () => {
         feather.replace();
         setupMouseGlow();
 
-        // Load saved theme on startup
         const savedTheme = localStorage.getItem('pokedexTheme') || 'default';
         applyTheme(savedTheme);
 
